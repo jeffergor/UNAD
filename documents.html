@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documents</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="chatlog.png" type="image/png" />
+</head>
+<body onload="loadDocuments()">
+
+  <div class="container">
+    <aside class="sidebar">
+      <h1>📁 Document Manager</h1>
+      <nav class="menu">
+        <a href="index.html">🏠 Home</a>
+        <a href="documents.html" class="active">📄 Documents</a>
+        <a href="database.html">🗄️ Database</a>
+        <a href="automation.html">⚙️ Automation</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="page-content">
+        <h2>📄 Manage Your Documents</h2>
+        <p>Easily upload, organize and access your documents by category.</p>
+      </section>
+
+      <section class="upload-section">
+        <h3>📤 Upload a Document</h3>
+        <form id="uploadForm">
+          <input type="file" name="document" required />
+          <select name="folder" id="folder" required>
+            <option value="Business Proposal">Business Proposal</option>
+            <option value="Marketing Proposal">Marketing Proposal</option>
+            <option value="Financial Reports">Financial Reports</option>
+            <option value="Human Resources">Human Resources</option>
+            <option value="Legal Documents">Legal Documents</option>
+            <option value="Project Management">Project Management</option>
+          </select>
+          <button type="submit">Upload</button>
+        </form>
+      </section>
+
+      <section class="documents-section">
+        <h3>📂 Document Folders</h3>
+        <div class="folder-grid" id="documentsList">
+          <!-- Carpetas generadas -->
+          <div class="folder" data-title="Business Proposal">
+            <h4>📁 Business Proposal</h4>
+            <ul class="file-list"></ul>
+          </div>
+          <div class="folder" data-title="Marketing Proposal">
+            <h4>📁 Marketing Proposal</h4>
+            <ul class="file-list"></ul>
+          </div>
+          <div class="folder" data-title="Financial Reports">
+            <h4>📁 Financial Reports</h4>
+            <ul class="file-list"></ul>
+          </div>
+          <div class="folder" data-title="Human Resources">
+            <h4>📁 Human Resources</h4>
+            <ul class="file-list"></ul>
+          </div>
+          <div class="folder" data-title="Legal Documents">
+            <h4>📁 Legal Documents</h4>
+            <ul class="file-list"></ul>
+          </div>
+          <div class="folder" data-title="Project Management">
+            <h4>📁 Project Management</h4>
+            <ul class="file-list"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const fileInput = this.querySelector('input[type="file"]');
+      const folder = this.querySelector('select[name="folder"]').value;
+      const file = fileInput.files[0];
+      if (!file) return alert('Please select a file');
+  
+      let savedDocs = JSON.parse(localStorage.getItem('documents')) || [];
+  
+      const duplicate = savedDocs.find(doc => doc.name === file.name && doc.folder === folder);
+      if (duplicate) {
+        alert(`El archivo "${file.name}" ya existe en la carpeta "${folder}"`);
+        return;
+      }
+  
+      const fileURL = URL.createObjectURL(file);
+      const docData = {
+        name: file.name,
+        folder: folder,
+        url: fileURL
+      };
+  
+      savedDocs.push(docData);
+      localStorage.setItem('documents', JSON.stringify(savedDocs));
+      addDocumentToFolder(docData);
+      fileInput.value = '';
+    });
+  
+    function addDocumentToFolder(doc) {
+      const folders = document.querySelectorAll('.folder');
+      folders.forEach(f => {
+        if (f.dataset.title === doc.folder) {
+          const li = document.createElement('li');
+    
+          li.innerHTML = `
+            📄 <strong>${doc.name}</strong>
+            <button onclick="previewDocument('${doc.url}')" class="view-btn">🔍 Ver</button>
+            <a href="${doc.url}" download="${doc.name}" class="download-btn">⬇️ Descargar</a>
+            <button class="delete-btn" data-name="${doc.name}" data-folder="${doc.folder}">🗑️</button>
+          `;
+    
+          f.querySelector('.file-list').appendChild(li);
+        }
+      });
+    }
+    function previewDocument(url) {
+      const viewer = window.open('', '_blank');
+      viewer.document.write(`
+        <title>Previsualización</title>
+        <iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>
+      `);
+      viewer.document.close();
+    }
+        
+  
+    function loadDocuments() {
+      const savedDocs = JSON.parse(localStorage.getItem('documents')) || [];
+      savedDocs.forEach(addDocumentToFolder);
+    }
+  
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('delete-btn')) {
+        const name = e.target.getAttribute('data-name');
+        const folder = e.target.getAttribute('data-folder');
+  
+        let savedDocs = JSON.parse(localStorage.getItem('documents')) || [];
+        savedDocs = savedDocs.filter(doc => !(doc.name === name && doc.folder === folder));
+        localStorage.setItem('documents', JSON.stringify(savedDocs));
+        e.target.closest('li').remove();
+      }
+    });
+  </script>
+  
+  
+</body>
+</html>

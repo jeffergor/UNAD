@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="chatlog.png" type="image/png">
+  <style>
+    body.dark-mode {
+      background-color: #121212;
+      color: #ffffff;
+    }
+    .database-actions {
+      margin-top: 20px;
+      padding: 10px;
+    }
+    .database-actions input, .database-actions button {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      opacity: 0.9;
+    }
+    .pagination {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .toggle-mode {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .saved-documents {
+      margin-top: 40px;
+    }
+    .saved-documents h3 {
+      margin-bottom: 10px;
+    }
+    .document-item {
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+    }
+    .delete-btn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="toggle-mode" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+    <aside class="sidebar">
+      <h1>Document Automation<br>& Management</h1>
+      <nav class="menu">
+        <a href="index.html">🏠 Home</a>
+        <a href="documents.html">📄 Documents</a>
+        <a href="database.html">🗄️ Database</a>
+        <a href="automation.html">⚙️ Automation</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="page-content">
+        <h2>🗄️ Database Page</h2>
+        <p>Manage your database records and storage from here.</p>
+
+        <div class="database-actions">
+          <h3>📋 View Records</h3>
+          <input type="search" id="searchInput" placeholder="Search records...">
+          <div id="recordCounter"></div>
+
+          <table id="recordTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable('id')">ID</th>
+                <th onclick="sortTable('name')">Name</th>
+                <th onclick="sortTable('details')">Details</th>
+                <th onclick="sortTable('description')">Description</th>
+                <th onclick="sortTable('category')">Category</th>
+                <th onclick="sortTable('date')">Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recordBody"></tbody>
+          </table>
+
+          <div class="pagination">
+            <button onclick="prevPage()">⬅️ Prev</button>
+            <button onclick="nextPage()">➡️ Next</button>
+          </div>
+
+          <button onclick="exportCSV()">📤 Export CSV</button>
+          <button onclick="saveRecords()">💾 Save Records</button>
+
+          <h3>➕ Add New Record</h3>
+          <form id="addRecordForm">
+            <input type="text" id="nameInput" placeholder="Enter record name" required>
+            <input type="text" id="detailsInput" placeholder="Enter record details" required>
+            <input type="text" id="descriptionInput" placeholder="Enter record description" required>
+            <input type="text" id="categoryInput" placeholder="Enter record category" required>
+            <input type="date" id="dateInput" required>
+            <button type="submit">Add Record</button>
+          </form>
+        </div>
+
+        <div class="saved-documents">
+          <h3>💾 Saved Documents</h3>
+          <div id="savedDocumentsList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    let records = JSON.parse(localStorage.getItem('records') || '[]');
+    const recordBody = document.getElementById('recordBody');
+    const recordCounter = document.getElementById('recordCounter');
+    const addRecordForm = document.getElementById('addRecordForm');
+    const nameInput = document.getElementById('nameInput');
+    const detailsInput = document.getElementById('detailsInput');
+    const descriptionInput = document.getElementById('descriptionInput');
+    const categoryInput = document.getElementById('categoryInput');
+    const dateInput = document.getElementById('dateInput');
+    const searchInput = document.getElementById('searchInput');
+    const savedDocumentsList = document.getElementById('savedDocumentsList');
+    const toast = document.getElementById('toast');
+
+    let currentPage = 1;
+    const recordsPerPage = 5;
+    let currentSort = { key: '', asc: true };
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function renderTable(data) {
+      const filtered = data.filter(r =>
+        r.name.toLowerCase().includes(searchInput.value.toLowerCase()) ||
+        r.details.toLowerCase().includes(searchInput.value.toLowerCase()) ||
+        r.description.toLowerCase().includes(searchInput.value.toLowerCase()) ||
+        r.category.toLowerCase().includes(searchInput.value.toLowerCase())
+      );
+      recordCounter.textContent = `Showing ${Math.min(filtered.length, currentPage * recordsPerPage)} of ${filtered.length} records.`;
+      const start = (currentPage - 1) * recordsPerPage;
+      const paginated = filtered.slice(start, start + recordsPerPage);
+      recordBody.innerHTML = '';
+      paginated.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${start + index + 1}</td>
+          <td>${record.name}</td>
+          <td>${record.details}</td>
+          <td>${record.description}</td>
+          <td>${record.category}</td>
+          <td>${record.date}</td>
+          <td><button onclick="deleteRecord(${records.indexOf(record)})">❌ Delete</button></td>
+        `;
+        recordBody.appendChild(row);
+      });
+    }
+
+    function deleteRecord(index) {
+      if (confirm('Are you sure?')) {
+        records.splice(index, 1);
+        localStorage.setItem('records', JSON.stringify(records));
+        showToast('Record deleted');
+        renderTable(records);
+      }
+    }
+
+    addRecordForm.addEventListener('submit', e => {
+      e.preventDefault();
+      records.push({
+        name: nameInput.value,
+        details: detailsInput.value,
+        description: descriptionInput.value,
+        category: categoryInput.value,
+        date: dateInput.value
+      });
+      localStorage.setItem('records', JSON.stringify(records));
+      addRecordForm.reset();
+      showToast('Record added');
+      renderTable(records);
+    });
+
+    searchInput.addEventListener('input', () => {
+      currentPage = 1;
+      renderTable(records);
+    });
+
+    function nextPage() {
+      currentPage++;
+      renderTable(records);
+    }
+
+    function prevPage() {
+      currentPage = Math.max(1, currentPage - 1);
+      renderTable(records);
+    }
+
+    function sortTable(key) {
+      currentSort.asc = currentSort.key === key ? !currentSort.asc : true;
+      currentSort.key = key;
+      records.sort((a, b) => {
+        const valA = key === 'id' ? records.indexOf(a) : a[key];
+        const valB = key === 'id' ? records.indexOf(b) : b[key];
+        return currentSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      });
+      renderTable(records);
+    }
+
+    function exportCSV() {
+      let csv = 'ID,Name,Details,Description,Category,Date\n';
+      records.forEach((r, i) => {
+        csv += `${i + 1},${r.name},${r.details},${r.description},${r.category},${r.date}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'records.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('CSV exported');
+    }
+
+    function saveRecords() {
+      const savedRecords = JSON.parse(localStorage.getItem('savedDocuments') || '[]');
+      savedRecords.push(...records);
+      localStorage.setItem('savedDocuments', JSON.stringify(savedRecords));
+      showToast('Records saved');
+      displaySavedDocuments();
+    }
+
+    function deleteSavedDocument(index) {
+      const savedRecords = JSON.parse(localStorage.getItem('savedDocuments') || '[]');
+      savedRecords.splice(index, 1);
+      localStorage.setItem('savedDocuments', JSON.stringify(savedRecords));
+      showToast('Saved document deleted');
+      displaySavedDocuments();
+    }
+
+    function displaySavedDocuments() {
+      const savedRecords = JSON.parse(localStorage.getItem('savedDocuments') || '[]');
+      savedDocumentsList.innerHTML = savedRecords.map((doc, i) => `
+        <div class="document-item">
+          <p><strong>Document ${i + 1}</strong></p>
+          <p>Name: ${doc.name}</p>
+          <p>Details: ${doc.details}</p>
+          <p>Description: ${doc.description}</p>
+          <p>Category: ${doc.category}</p>
+          <p>Date: ${doc.date}</p>
+          <button class="delete-btn" onclick="deleteSavedDocument(${i})">Delete Document</button>
+        </div>
+      `).join('');
+    }
+
+    window.onload = displaySavedDocuments;
+    renderTable(records);
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+</body>
+</html>

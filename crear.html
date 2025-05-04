@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Permiso</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Crear Permiso de Trabajo</h1>
+        <nav>
+            <ul id="MenuItems">
+                <li><a href="index.html">Return</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section id="crear">
+        <h2>Formulario de Permiso</h2>
+        <form id="permisoForm">
+            <label for="nombreTrabajador">Nombre del Trabajador:</label>
+            <input type="text" id="nombreTrabajador" name="nombreTrabajador" required>
+
+            <label for="fechaInicio">Fecha de Inicio:</label>
+            <input type="date" id="fechaInicio" name="fechaInicio" required>
+
+            <label for="fechaFin">Fecha de Fin:</label>
+            <input type="date" id="fechaFin" name="fechaFin" required>
+
+            <!-- Nueva sección de motivo -->
+            <label for="motivo">Motivo:</label>
+            <select id="motivo" name="motivo" required>
+                <option value="">Seleccione un motivo</option>
+                <option value="Calamidad domestica">Calamidad domestica</option>
+                <option value="Vacaciónes">Vacaciónes</option>
+                <option value="Excusa Medica">Excusa Medica</option>
+                <option value="Día compensatorio">Día compensatorio</option>
+            </select>
+
+            <label for="supervisor">Supervisor:</label>
+            <input type="text" id="supervisor" name="supervisor" required>
+
+            <button type="submit">Crear Permiso</button>
+        </form>
+    </section>
+    <footer>
+        <p>Plataforma de Gestión de Permisos de Trabajo &copy; 2024</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const permisoForm = document.getElementById('permisoForm');
+    
+            permisoForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+    
+                // Obtén los datos del formulario
+                const nombreTrabajador = document.getElementById('nombreTrabajador').value;
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                const motivo = document.getElementById('motivo').value;  // Nuevo campo de motivo
+                const supervisor = document.getElementById('supervisor').value;
+    
+                // Crear un objeto de permiso
+                const permiso = {
+                    nombreTrabajador: nombreTrabajador,
+                    fechaInicio: fechaInicio,
+                    fechaFin: fechaFin,
+                    motivo: motivo,  // Añadir motivo al objeto
+                    supervisor: supervisor,
+                    estado: 'Pendiente'
+                };
+    
+                // Guardar en localStorage
+                let permisos = JSON.parse(localStorage.getItem('permisos')) || [];
+                permisos.push(permiso);
+                localStorage.setItem('permisos', JSON.stringify(permisos));
+    
+                // Mostrar un mensaje emergente
+                alert('Permiso creado exitosamente');
+            });
+        });
+    </script>
+</body>
+</html>

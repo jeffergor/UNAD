@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Permisos de Trabajo</title>
+    <link rel="stylesheet" href="style3.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver"></script>
+    <header>
+    <nav>
+        <ul id=" MenuItems">
+            <li><a href="index.html">Return</a></li>
+        </ul>
+        </nav>
+    </header>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f9;
+        }
+
+        #dashboard {
+            max-width: 100%;
+            width: 90%;
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 400px; /* Limita la altura del contenedor de gráficos */
+            overflow-y: auto; /* Agrega una barra de desplazamiento vertical si es necesario */
+            gap: 20px;
+        }
+
+        #chart-container canvas {
+            max-width: 100%;
+            height: 100px; /* Altura dinámica del canvas */
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<section id="dashboard">
+    <h2>Dashboard Interactivo</h2>
+    <div id="chart-container">
+        <canvas id="barChart" width="500" height="140"></canvas>
+        <canvas id="pieChart" width="500" height="140"></canvas>
+    </div>
+    <button id="downloadData">Descargar Datos</button>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartContainer = document.getElementById('chart-container');
+        const downloadDataButton = document.getElementById('downloadData');
+
+        // Recupera los datos del localStorage
+        let permisos = JSON.parse(localStorage.getItem('permisos')) || [];
+
+        // Contadores de permisos
+        let aceptados = 0;
+        let denegados = 0;
+        let motivosDenegados = {};
+
+        permisos.forEach(permiso => {
+            if (permiso.estado === 'Aceptado') {
+                aceptados++;
+            } else if (permiso.estado === 'Negado') {
+                denegados++;
+                if (motivosDenegados[permiso.motivo]) {
+                    motivosDenegados[permiso.motivo]++;
+                } else {
+                    motivosDenegados[permiso.motivo] = 1;
+                }
+            }
+        });
+
+        // Configuración de los gráficos
+        const barChartContext = document.getElementById('barChart').getContext('2d');
+        const pieChartContext = document.getElementById('pieChart').getContext('2d');
+
+        // Gráfico de barras para permisos aceptados y denegados
+        new Chart(barChartContext, {
+            type: 'bar',
+            data: {
+                labels: ['Aceptados', 'Denegados'],
+                datasets: [{
+                    label: 'Número de Permisos',
+                    data: [aceptados, denegados],
+                    backgroundColor: ['#4caf50', '#f44336'],
+                    borderColor: ['#388e3c', '#c62828'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Gráfico de pastel para motivos de denegación
+        new Chart(pieChartContext, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(motivosDenegados),
+                datasets: [{
+                    label: 'Motivos de Denegación',
+                    data: Object.values(motivosDenegados),
+                    backgroundColor: ['#ffeb3b', '#ff9800', '#f44336', '#9c27b0', '#3f51b5']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        // Funcionalidad para descargar los datos
+        downloadDataButton.addEventListener('click', () => {
+            const csvRows = [];
+            const headers = ['Nombre Trabajador', 'Fecha Inicio', 'Fecha Fin', 'Supervisor', 'Estado', 'Motivo'];
+            csvRows.push(headers.join(','));
+
+            permisos.forEach(permiso => {
+                const row = [
+                    permiso.nombreTrabajador,
+                    permiso.fechaInicio,
+                    permiso.fechaFin,
+                    permiso.supervisor,
+                    permiso.estado,
+                    permiso.motivo || ''
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, 'permisos.csv');
+        });
+    });
+
+</script>
+</body>
+</html>

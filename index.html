@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Document Automation & Management</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="chatlog.png" type="image/png">
+</head>
+<body onload="loadDocuments()">
+
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h1>Document Automation<br>& Management</h1>
+      <nav class="menu">
+        <a href="index.html">🏠 Home</a>
+        <a href="documents.html">📄 Documents</a>
+        <a href="database.html">🗄️ Database</a>
+        <a href="automation.html">⚙️ Automation</a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Chatbot -->
+      <section class="chatbot">
+        <div class="chat-header">
+          <div class="chat-window" id="chatWindow"></div>
+
+<div class="predefined-questions">
+  <p>Try asking:</p>
+  <button onclick="handleQuestion('What documents can I upload?')">📁 What documents can I upload?</button>
+  <button onclick="handleQuestion('How to search for a document?')">🔍 How to search for a document?</button>
+  <button onclick="handleQuestion('Can I automate a workflow?')">⚙️ Can I automate a workflow?</button>
+</div>
+          <div class="bot-icon">🤖</div>
+          <div class="bot-text">How can I assist you today?</div>
+        </div>
+        <div class="chat-input">
+          <input type="text" id="userMessage" placeholder="Type a message...">
+          <button onclick="sendMessage()">➔</button>
+        </div>
+      </section>
+
+      <!-- Documents -->
+      <section class="documents">
+        <div class="documents-header">
+          <div class="documents-title-search">
+            <h2>Documents</h2>
+            <div class="search-container">
+              <input type="text" id="searchInput" placeholder="Search documents...">
+              <button onclick="searchDocuments()">🔍</button>
+            </div>
+          </div>
+          <div class="upload-section">
+            <input type="file" id="fileUpload" multiple>
+            <button onclick="uploadDocuments()">📤 Upload</button>
+          </div>
+          
+          <div class="filters">
+            <button>Type</button>
+            <button>Date</button>
+            <button>Category</button>
+          </div>
+        </div>
+        
+        <div class="documents-list">
+            <!-- Quarterly Sales Report -->
+            <div class="document-item">
+              <div class="doc-info">
+                <div class="doc-icon">📊</div>
+                <div>
+                  <div class="doc-title">Quarterly Sales Report</div>
+                  <div class="doc-type">PDF</div>
+                </div>
+              </div>
+              <div class="doc-actions">
+
+                <a href="documents\Quarterly_Sales_Report.pdf" download class="download-btn">⬇️</a>
+              </div>
+            </div>
+          
+            <!-- Project Plan -->
+            <div class="document-item">
+              <div class="doc-info">
+                <div class="doc-icon">📋</div>
+                <div>
+                  <div class="doc-title">Project Plan</div>
+                  <div class="doc-type">DOCX</div>
+                </div>
+              </div>
+              <div class="doc-actions">
+                <a href="documents/Project_Plan.docx" download class="download-btn">⬇️</a>
+              </div>
+            </div>
+          
+            <!-- Invoice #12345 -->
+            <div class="document-item">
+              <div class="doc-info">
+                <div class="doc-icon">🧾</div>
+                <div>
+                  <div class="doc-title">Invoice #12345</div>
+                  <div class="doc-type">PDF</div>
+                </div>
+              </div>
+              <div class="doc-actions">
+                <a href="documents/Invoice_12345.pdf" download class="download-btn">⬇️</a>
+              </div>
+            </div>
+          
+            <!-- Presentation Slides -->
+            <div class="document-item">
+              <div class="doc-info">
+                <div class="doc-icon">📽️</div>
+                <div>
+                  <div class="doc-title">Presentation Slides</div>
+                  <div class="doc-type">PPTX</div>
+                </div>
+              </div>
+              <div class="doc-actions">
+                <a href="documents/Presentation_Slides.pptx" download class="download-btn">⬇️</a>
+              </div>
+            </div>
+          </div>
+          
+      </section>
+    </main>
+  </div>
+
+  <script src="script1.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Automation</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="chatlog.png" type="image/png">
+  <script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    .voice-bot {
+      margin-top: 20px;
+    }
+    #response {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+    }
+    .automation-section {
+      margin-top: 40px;
+    }
+    .automation-section button, #sendBtn {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #userInput {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    #outputLog {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #999;
+      background: #eef;
+    }
+    .folder {
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: underline;
+    }
+    #autoSummary, #executiveSummary {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+    #translationSection {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h1>Document Automation<br>& Management</h1>
+      <nav class="menu">
+        <a href="index.html">🏠 Home</a>
+        <a href="documents.html">📄 Documents</a>
+        <a href="database.html">🗄️ Database</a>
+        <a href="automation.html">⚙️ Automation</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="page-content">
+        <h2>⚙️ Automation Page</h2>
+        <p>Setup automation processes for your documents and tasks here.</p>
+
+        <div class="voice-bot">
+          <h3>🎤 Chatbot de Voz</h3>
+          <button onclick="startRecording()">🎙️ Hablar</button>
+          <input type="text" id="userInput" placeholder="Escribe tu mensaje aquí...">
+          <button id="sendBtn" onclick="sendMessage()">Enviar</button>
+          <div id="response">Esperando tu voz...</div>
+        </div>
+
+        <div>
+          <h3>📥 Cargar documentos para clasificación</h3>
+          <input type="text" id="folderName" placeholder="Ingresa el nombre de la carpeta">
+          <input type="file" id="documentFile" multiple accept=".pdf, .docx, .txt" />
+          <button onclick="uploadDocuments()">Cargar Documentos</button>
+        </div>
+
+        <div class="automation-section">
+          <h3>🤖 Automatizaciones Disponibles</h3>
+          <button onclick="autoClassify()">📂 Clasificación Automática de Documentos</button>
+          <button onclick="autoExecutiveSummary()">📃 Resumen Ejecutivo</button>
+          <button onclick="autoTranslate()">🌐 Traducción Automática de Texto</button>
+          <button onclick="generateBackup()">💾 Generar respaldo</button>
+        </div>
+
+        <!-- Sección de Traducción -->
+        <div id="translationSection">
+          <h3>🌐 Traducción Manual (sin conexión)</h3>
+          <textarea id="textToTranslate" placeholder="Escribe el texto que deseas traducir..." rows="5" style="width:100%"></textarea><br><br>
+          <label for="languageSelect">Selecciona el idioma:</label>
+          <select id="languageSelect">
+            <option value="en">Inglés</option>
+            <option value="fr">Francés</option>
+            <option value="de">Alemán</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Portugués</option>
+            <option value="es">Español</option>
+          </select><br><br>
+          <button onclick="localTranslateText()">Traducir</button>
+          <button id="downloadTranslatedDoc" style="display:none" onclick="downloadTranslatedDoc()">📥 Descargar Traducción</button>
+
+          <div id="translatedTextArea" style="margin-top: 20px;">
+            <h4>Texto Traducido:</h4>
+            <p id="translatedText">El texto traducido aparecerá aquí...</p>
+          </div>
+        </div>
+        <script>
+        function startRecording() {
+          const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+          recognition.lang = 'es-ES';
+          recognition.start();
+    
+          recognition.onresult = function(event) {
+            const spokenText = event.results[0][0].transcript;
+            document.getElementById("userInput").value = spokenText;
+            sendMessage();
+          };
+        }
+    
+        function sendMessage() {
+          const userText = document.getElementById("userInput").value;
+          if (!userText.trim()) return;
+    
+          document.getElementById("response").innerText = "Tú dijiste: " + userText;
+    
+          setTimeout(() => {
+            let botResponse = "";
+            const lowerText = userText.toLowerCase();
+    
+            if (lowerText.includes("hola")) {
+              botResponse = "Hola, soy tu chatbot automático 🤖 ¿En qué puedo ayudarte hoy?";
+            } else if (lowerText.includes("gracias")) {
+              botResponse = "¡De nada! Estoy aquí para ayudarte cuando lo necesites.";
+            } else if (lowerText.includes("¿cómo estás?")) {
+              botResponse = "Estoy funcionando perfectamente. ¿Y tú cómo estás?";
+            } else if (lowerText.includes("qué puedes hacer")) {
+              botResponse = "Puedo ayudarte a clasificar documentos, generar resúmenes, traducir textos y hacer respaldos automáticos.";
+            } else {
+              botResponse = "Lo siento, aún estoy aprendiendo a responder eso. Intenta preguntarme otra cosa 😉";
+            }
+    
+            document.getElementById("response").innerText += "\nChatbot: " + botResponse;
+          }, 500);
+        }
+</script>
+
+        <!-- Resumen Ejecutivo -->
+        <div id="executiveSummary">
+          <h4>📃 Resumen Ejecutivo Generado:</h4>
+          <p id="executiveSummaryText">Aquí aparecerá el resumen ejecutivo del documento...</p>
+
+        </div>
+
+        <div id="outputLog">
+          <h4>📋 Registro de Acciones:</h4>
+          <ul id="logList"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.5.2/mammoth.browser.min.js"></script>
+  
+<!-- Librería para comprimir en ZIP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+
+<script>
+  let uploadedFiles = [];
+
+  function uploadDocuments() {
+    const folderName = document.getElementById('folderName').value.trim();
+    if (!folderName) {
+      alert("❌ Debes ingresar un nombre para la carpeta.");
+      return;
+    }
+
+    const fileInput = document.getElementById('documentFile');
+    const files = fileInput.files;
+
+    if (files.length === 0) {
+      alert("❌ No se seleccionaron documentos.");
+      return;
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      uploadedFiles.push(files[i]);
+    }
+
+    alert(`✅ ${files.length} documentos cargados con éxito en la carpeta "${folderName}".`);
+    logFolderAction(folderName, Array.from(files));
+  }
+
+  function logFolderAction(folderName, files) {
+    const logList = document.getElementById("logList");
+    const folderItem = document.createElement("li");
+    folderItem.classList.add("folder");
+
+    folderItem.innerHTML = `<strong>${folderName}</strong> (haz clic para ver los archivos)`;
+
+    folderItem.onclick = function toggleFiles() {
+      let fileList = "<ul>";
+      files.forEach(file => {
+        fileList += `<li>${file.name}</li>`;
+      });
+      fileList += "</ul>";
+
+      folderItem.innerHTML = `<strong>${folderName}</strong> (haz clic para ocultar los archivos) ${fileList}
+        <button onclick="downloadFolder('${folderName}')">📁 Descargar Carpeta</button>`;
+
+      folderItem.onclick = () => {
+        folderItem.innerHTML = `<strong>${folderName}</strong> (haz clic para ver los archivos)`;
+        folderItem.onclick = toggleFiles;
+      };
+    };
+
+    logList.appendChild(folderItem);
+  }
+
+  function downloadFolder(folderName) {
+    event.stopPropagation();
+    const zip = new JSZip();
+    const folder = zip.folder(folderName);
+    uploadedFiles.forEach(file => {
+      folder.file(file.name, file);
+    });
+
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${folderName}.zip`;
+      link.click();
+    });
+  }
+
+  function autoClassify() {
+    if (uploadedFiles.length === 0) {
+      alert("❌ No hay documentos para clasificar.");
+      return;
+    }
+
+    uploadedFiles.forEach(file => {
+      const fileType = file.type;
+      let category = "";
+
+      if (fileType.includes("pdf")) {
+        category = "PDF Documentos";
+      } else if (fileType.includes("word") || file.name.endsWith(".docx")) {
+        category = "Word Documentos";
+      } else {
+        category = "Otros Documentos";
+      }
+
+      logAction(`✅ Documento '${file.name}' clasificado como: ${category}`);
+    });
+
+    alert("📂 Documentos clasificados automáticamente.");
+  }
+  function logAction(message) {
+    const logList = document.getElementById("logList");
+    const li = document.createElement("li");
+    li.textContent = message;
+    logList.appendChild(li);
+  }
+  async function autoExecutiveSummary() {
+    console.log("📃 Resumen Ejecutivo fue clickeado");
+    if (uploadedFiles.length === 0) {
+      alert("❌ No hay documentos cargados para generar el resumen ejecutivo.");
+      return;
+      console.log(uploadedFiles);
+
+    }
+  
+    let allText = "";
+    console.log("Contenido leído:", allText);
+    document.getElementById("executiveSummaryText").innerText = resumen;
+    for (const file of uploadedFiles) {
+      const content = await readFileContent(file);
+      allText += "\n" + content;
+    }
+    
+  
+    const resumen = generateExecutiveSummary(allText);
+    document.getElementById("executiveSummaryText").innerText = resumen;
+    alert("📃 Resumen ejecutivo generado.");
+    logAction("📃 Resumen ejecutivo generado desde documentos cargados.");
+  }
+  
+
+  const dictionary = {
+    "hola": { en: "hello", fr: "bonjour", pt: "olá", de: "hallo", it: "ciao" },
+    "adiós": { en: "goodbye", fr: "au revoir", pt: "adeus", de: "auf Wiedersehen", it: "addio" },
+    "gracias": { en: "thank you", fr: "merci", pt: "obrigado", de: "danke", it: "grazie" },
+    "por favor": { en: "please", fr: "s'il vous plaît", pt: "por favor", de: "bitte", it: "per favore" },
+    "lo siento": { en: "sorry", fr: "désolé", pt: "desculpa", de: "entschuldigung", it: "mi dispiace" },
+    "sí": { en: "yes", fr: "oui", pt: "sim", de: "ja", it: "sì" },
+    "no": { en: "no", fr: "non", pt: "não", de: "nein", it: "no" },
+    "buenos días": { en: "good morning", fr: "bonjour", pt: "bom dia", de: "guten Morgen", it: "buongiorno" },
+    "buenas noches": { en: "good night", fr: "bonne nuit", pt: "boa noite", de: "gute Nacht", it: "buona notte" },
+    "¿cómo estás?": { en: "how are you?", fr: "comment ça va ?", pt: "como vai?", de: "wie geht es dir?", it: "come stai?" },
+    "estoy bien": { en: "I am fine", fr: "je vais bien", pt: "estou bem", de: "mir geht es gut", it: "sto bene" },
+    "estoy mal": { en: "I feel bad", fr: "je ne vais pas bien", pt: "estou mal", de: "mir geht es schlecht", it: "sto male" },
+    "¿qué hora es?": { en: "what time is it?", fr: "quelle heure est-il?", pt: "que horas são?", de: "wie spät ist es?", it: "che ore sono?" },
+    "me llamo": { en: "my name is", fr: "je m'appelle", pt: "me chamo", de: "ich heiße", it: "mi chiamo" },
+    "mucho gusto": { en: "nice to meet you", fr: "enchanté", pt: "muito prazer", de: "freut mich", it: "piacere" },
+    "hasta luego": { en: "see you later", fr: "à plus tard", pt: "até logo", de: "bis später", it: "a dopo" }
+  };
+
+  function localTranslateText() {
+    const text = document.getElementById('textToTranslate').value.toLowerCase();
+    const targetLanguage = document.getElementById('languageSelect').value;
+
+    if (!text.trim()) {
+      alert('❌ Debes ingresar un texto para traducir.');
+      return;
+    }
+
+    let translated = text;
+    const phrases = Object.keys(dictionary).sort((a, b) => b.length - a.length);
+    for (const phrase of phrases) {
+      const translation = dictionary[phrase]?.[targetLanguage];
+      if (translation) {
+        const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+        translated = translated.replace(regex, translation);
+      }
+    }
+
+    document.getElementById('translatedText').innerText = translated;
+    document.getElementById('downloadTranslatedDoc').style.display = 'inline-block';
+    logAction(`🌐 Traducción automática realizada al ${targetLanguage.toUpperCase()} → Resultado: ${translated}`);
+  }
+
+  function downloadTranslatedDoc() {
+    const translated = document.getElementById("translatedText").innerText;
+    const blob = new Blob([translated], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "traduccion.txt";
+    link.click();
+  }
+
+  function logAction(message) {
+    const logList = document.getElementById("logList");
+    const li = document.createElement("li");
+    li.textContent = message;
+    logList.appendChild(li);
+  }
+  async function readFileContent(file) {
+    if (file.name.endsWith(".txt")) {
+      return await file.text();
+    } else if (file.name.endsWith(".pdf")) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(" ") + "\n";
+      }
+      return text;
+    } else if (file.name.endsWith(".docx")) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    } else {
+      return "";
+    }
+  }
+  
+  function generateSummary(text) {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const summary = sentences.slice(0, 3).join(" ");
+    return summary;
+  }
+  
+  function generateExecutiveSummary(text) {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+    return sentences.slice(0, 3).join(" ").trim(); // Las 3 primeras frases
+  }
+  
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+  function generateBackup() {
+    const backup = {
+      documentos: uploadedFiles.map(file => file.name),
+      resumen: document.getElementById("summaryText").innerText,
+      resumenEjecutivo: document.getElementById("executiveSummaryText").innerText,
+      historial: actionLog // este array lo puedes haber usado para logAction()
+    };
+  
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "respaldo_documental.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  
+    alert("✅ Respaldo generado y descargado.");
+  }
+
+  const CLIENT_ID = '355736434805-krl5ke6q249vvvt3leenjp5mcp8m7osa.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyA0drEAjERBlLMaXii4gAcEqNamWdzQQ6k';
+const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+function handleClientLoad() {
+  gapi.load('client:auth2', initClient);
+}
+
+function initClient() {
+  gapi.client.init({
+    apiKey: API_KEY,
+    clientId: CLIENT_ID,
+    discoveryDocs: DISCOVERY_DOCS,
+    scope: SCOPES
+  }).then(() => {
+    // Escuchar cambios en el estado de autenticación
+    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+    // Manejar el estado actual de autenticación
+    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+  });
+}
+
+function updateSigninStatus(isSignedIn) {
+  if (isSignedIn) {
+    // El usuario está autenticado
+    console.log('Usuario autenticado');
+  } else {
+    // El usuario no está autenticado
+    console.log('Usuario no autenticado');
+  }
+}
+
+function handleAuthClick() {
+  gapi.auth2.getAuthInstance().signIn();
+}
+
+function handleSignoutClick() {
+  gapi.auth2.getAuthInstance().signOut();
+}
+
+</script>
+
+
+</body>
+</html>

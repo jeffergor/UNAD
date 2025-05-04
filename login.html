@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="chatlog.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <div class="form login">
+            <div class="content">
+                <h1>Login</h1>
+                <form id="loginForm">
+                    <div class="group">
+                        <input type="text" id="username" class="inputText" placeholder=" " required>
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="group">
+                        <input type="password" id="password" class="inputText" placeholder=" " required>
+                        <label for="password">Password</label>
+                    </div>
+                    <button type="submit">Login</button>
+                    <p id="errorMsg" style="color: red;"></p> <!-- Mensaje de error -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Plataforma de búsqueda y análisis documental &copy; 2024</p>
+    </footer>
+
+    <script>
+        // Cargar datos del CSV como un objeto JavaScript
+        const users = [
+            {username: "jeffersonHeins@tutrabajo.com", password: "123456"},
+            {username: "maikellorenz01@tutrabajo.com", password: "1996m"},
+            {username: "Yohannabarz@tutrabajo.com", password: "mkli256"},
+            {username: "solangelics@tuttrabajo.com", password: "kkkk5267"}
+        ];
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Buscar si el usuario existe en el array
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                // Redirige si el usuario es válido
+                window.location.href = 'index.html';
+            } else {
+                // Muestra mensaje de error si no existe
+                errorMsg.textContent = 'Usuario o contraseña incorrectos';
+            }
+        });
+    </script>
+</body>
+</html>
